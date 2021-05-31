@@ -1,124 +1,31 @@
 #!/home/ri-1080/.pyenv/versions/ros_py36/pin/python
-
-
-import open3d as o3d
 import numpy as np
 import os
 import glob
-import pprint
-import cv2
-import matplotlib.pylab as pt
-import matplotlib.pyplot as plt
-
-import get_transform as gt
-
-count = 0
 
 
-def load_nps():
+def load_a2d2_npz():
     root_path = 'data/'
-    file_names  = sorted(glob.glob(os.path.join(root_path, 'lidar/*.npz')))
+    file_names = sorted(glob.glob(os.path.join(root_path, 'lidar/*.npz')))
 
-    count = 0
-    for i, file_name_lidar  in enumerate(file_names ):
+    for i, file_name_lidar in enumerate(file_names):
         # print(file_name_lidar)
         seq_name = file_name_lidar.split('/')[2]
         file_name = seq_name.split('.')[0]
         save_bin_file_name = os.path.join(root_path, 'lidar_bin/', file_name + '.bin')
-        kitti_velodyn = os.path.join(root_path,'velodyne',)
-
 
         lidar_front_center = np.load(file_name_lidar)
-        # pprint.pprint(list(lidar_front_center.keys()))
         points = lidar_front_center['pcloud_points']
         reflectance = lidar_front_center['pcloud_attr.reflectance']
-        timestamps = lidar_front_center['pcloud_attr.timestamp']
-        rows = lidar_front_center['pcloud_attr.row']
-        cols = lidar_front_center['pcloud_attr.col']
-        distance = lidar_front_center['pcloud_attr.distance']
-        depth = lidar_front_center['pcloud_attr.depth']
-        lidar_ids = lidar_front_center['pcloud_attr.lidar_id']
 
+        reflectance = np.reshape(reflectance, (reflectance.shape[0], 1))
+        velodyne = np.concatenate([points, reflectance], axis=1)
+        velodyne_bin = np.reshape(velodyne, (-1)).astype(np.float32)
+        velodyne_bin = bytes(velodyne_bin)
 
-        print(points.shape)
-
-        # show_lidar(lidar_front_center)
-        # pcd_front_center = create_open3d_pc(lidar_front_center)
-        # o3d.visualization.draw_geometries([pcd_front_center])
-
-
-
-
-
-
-
-
-
-def show_lidar(lidar_front_center):
-    config = gt.load_json()
-    src_view_front_center = config["cameras"]["front_center"]["view"]
-    vehicle_view = target_view = config['vehicle']['view']
-
-    lidar_front_center = project_lidar_from_to(lidar_front_center, src_view_front_center, vehicle_view)
-    pcd_front_center = create_open3d_pc(lidar_front_center)
-
-    o3d.visualization.draw_geometries([pcd_front_center])
-
-
-
-def colours_from_reflectances(reflectances):
-    return np.stack([reflectances, reflectances, reflectances], axis=1)
-
-
-def create_open3d_pc(lidar, cam_image=None):
-    # create open3d point cloud
-    pcd = o3d.geometry.PointCloud()
-
-    # assign point coordinates
-    pcd.points = o3d.utility.Vector3dVector(lidar['pcloud_points'])
-
-    # assign colours
-    if cam_image is None:
-        median_reflectance = np.median(lidar['pcloud_attr.reflectance'])
-        colours = colours_from_reflectances(lidar['pcloud_attr.reflectance']) / (median_reflectance * 5)
-
-        # clip colours for visualisation on a white background
-        colours = np.clip(colours, 0, 0.75)
-    else:
-        rows = (lidar['pcloud_attr.row'] + 0.5).astype(np.int)
-        cols = (lidar['pcloud_attr.col'] + 0.5).astype(np.int)
-        colours = cam_image[rows, cols, :] / 255.0
-
-    pcd.colors = o3d.utility.Vector3dVector(colours)
-
-    return pcd
-
-
-def project_lidar_from_to(lidar, src_view, target_view):
-    lidar = dict(lidar)
-    trans = gt.transform_from_to(src_view, target_view)
-    points = lidar['pcloud_points']
-    points_hom = np.ones((points.shape[0], 4))
-    points_hom[:, 0:3] = points
-    points_trans = (np.dot(trans, points_hom.T)).T
-    lidar['pcloud_points'] = points_trans[:, 0:3]
-
-    return lidar
-
-def extract_image_file_name_from_lidar_file_name(file_name_lidar):
-    file_name_image = file_name_lidar.split('/')
-    file_name_image = file_name_image[-1].split('.')[0]
-    file_name_image = file_name_image.split('_')
-    file_name_image = file_name_image[0] + '_' + \
-                        'camera_' + \
-                        file_name_image[2] + '_' + \
-                        file_name_image[3] + '.png'
-
-    return file_name_image
-
+        with open(save_bin_file_name, 'wb') as f:
+            f.write(velodyne_bin)
 
 
 if __name__ == '__main__':
-    nps_file_names = load_nps()
-    # show_lidar(nps_file_names)
-
+    nps_file_names = load_a2d2_npz()
