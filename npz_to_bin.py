@@ -7,6 +7,8 @@ import os
 import glob
 import pprint
 import cv2
+import matplotlib.pylab as pt
+import matplotlib.pyplot as plt
 
 import get_transform as gt
 
@@ -14,18 +16,16 @@ count = 0
 
 
 def load_nps():
-    root_path = 'data/lidar/'
-    file_names  = sorted(glob.glob(os.path.join(root_path, '*.npz')))
+    root_path = 'data/'
+    file_names  = sorted(glob.glob(os.path.join(root_path, 'lidar/*.npz')))
 
     count = 0
     for i, file_name_lidar  in enumerate(file_names ):
-        print(file_name_lidar)
+        # print(file_name_lidar)
         seq_name = file_name_lidar.split('/')[2]
-        print(seq_name)
-        file_name_image = extract_image_file_name_from_lidar_file_name(file_name_lidar)
-        file_name_image = os.path.join(root_path, seq_name, 'camera/cam_front_center/', file_name_image)
-        image_front_center = cv2.imread(file_name_image)
-
+        file_name = seq_name.split('.')[0]
+        save_bin_file_name = os.path.join(root_path, 'lidar_bin/', file_name + '.bin')
+        kitti_velodyn = os.path.join(root_path,'velodyne',)
 
 
         lidar_front_center = np.load(file_name_lidar)
@@ -39,9 +39,19 @@ def load_nps():
         depth = lidar_front_center['pcloud_attr.depth']
         lidar_ids = lidar_front_center['pcloud_attr.lidar_id']
 
-        show_lidar(lidar_front_center)
+
+        print(points.shape)
+
+        # show_lidar(lidar_front_center)
         # pcd_front_center = create_open3d_pc(lidar_front_center)
         # o3d.visualization.draw_geometries([pcd_front_center])
+
+
+
+
+
+
+
 
 
 def show_lidar(lidar_front_center):
@@ -106,6 +116,9 @@ def extract_image_file_name_from_lidar_file_name(file_name_lidar):
 
     return file_name_image
 
+
+
 if __name__ == '__main__':
     nps_file_names = load_nps()
-    show_lidar(nps_file_names)
+    # show_lidar(nps_file_names)
+
