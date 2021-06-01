@@ -9,28 +9,17 @@ import pprint
 EPSILON = 1.0e-10
 
 
-def load_json():
-    # root_path = 'data/camera/'
-    # file_names = sorted(glob.glob(os.path.join(root_path,'*.json')))
-    root_path = 'data/'
+def load_json(root_path):
     file_names = sorted(glob.glob(os.path.join(root_path, '*.json')))
 
     # print(file_names)
     for i, file_name in enumerate(file_names):
         with open(file_name, 'r') as f:
             config = json.load(f)
-            # pprint.pprint(config)
-            # print(config.keys())
-
-            src_view = config['cameras']['front_center']['view']
-            rot_center = get_rot_from_global(src_view)
-            rot_center_to = get_rot_to_global(src_view)
-            target_view = config['cameras']['front_right']['view']
-            rot = rot_from_to(target_view, src_view)
-
-            # print(rot)
 
     return config
+
+
 def get_origin_of_a_view(view):
     return view['origin']
 
@@ -129,5 +118,30 @@ def transform_from_to(src, target):
     return transform
 
 
-if __name__ == '__main__':
-    load_json()
+def save_txt_calib(root_path):
+    config = load_json(root_path)
+    cam_matrix = config['cameras']['front_center']['CamMatrix']
+    view = config['cameras']['front_center']['view']
+    transform = get_transform_from_global(view)
+    rot = get_rot_from_global(view)
+
+    ZERO = "0.000000000000e+00"
+    catagolies = ["P0", "P1", "P2", "P3", "R0_rect", "Tr_velo_to_cam"]
+    calibriation_dict = dict()
+    cam_matrix = np.array(cam_matrix).reshape(3, 3)
+    one = np.eye(3)
+    zero = np.zeros([3, 1])
+    matrix34 = np.concatenate((one, zero), axis=1)
+    cam_matrix = cam_matrix @ matrix34 @ transform
+    cam_matrix = np.reshape(cam_matrix,(-1)).astype(np.float32)
+    transform = np.reshape(transform,(-1)).astype(np.float32)
+    rot = np.reshape(rot,(-1)).astype(np.float32)
+
+    calibriation_dict["P0"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
+    calibriation_dict["P1"] = f"{cam_matrix[0]} {cam_matrix[1]} {cam_matrix[2]} {cam_matrix[3]} {cam_matrix[4]} {cam_matrix[5]} {cam_matrix[6]} {cam_matrix[7]} {cam_matrix[8]} {cam_matrix[9]} {cam_matrix[10]} {cam_matrix[11]}"
+    calibriation_dict["P2"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
+    calibriation_dict["P3"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
+    calibriation_dict["R0_rect"] = f"{rot[0]} {rot[1]} {rot[2]} {rot[3]} {rot[4]} {rot[5]} {rot[6]} {rot[7]} {rot[8]}"
+    calibriation_dict["Tr_velo_to_cam"] = f"{transform[0]} {transform[1]} {transform[2]} {transform[3]} {transform[4]} {transform[5]} {transform[6]} {transform[7]} {transform[8]} {transform[9]} {transform[10]} {transform[11]}"
+
+    return calibriation_dict

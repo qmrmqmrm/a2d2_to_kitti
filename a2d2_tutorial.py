@@ -4,14 +4,17 @@ import get_transform as gt
 import numpy as np
 
 
-def extract_image_file_name_from_lidar_file_name(file_name_lidar):
-    file_name_image = file_name_lidar.split('/')
-    file_name_image = file_name_image[-1].split('.')[0]
-    file_name_image = file_name_image.split('_')
-    file_name_image = file_name_image[0] + '_' + \
-                        'camera_' + \
-                        file_name_image[2] + '_' + \
-                        file_name_image[3] + '.png'
+def project_lidar_from_to(lidar, src_view, target_view):
+    lidar = dict(lidar)
+    trans = gt.transform_from_to(src_view, target_view)
+    points = lidar['points']
+    points_hom = np.ones((points.shape[0], 4))
+    points_hom[:, 0:3] = points
+    points_trans = (np.dot(trans, points_hom.T)).T
+    lidar['points'] = points_trans[:, 0:3]
 
-    return file_name_image
+    return lidar
 
+
+if __name__ == '__main__':
+    project_lidar_from_to()
