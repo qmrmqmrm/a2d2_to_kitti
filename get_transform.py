@@ -138,8 +138,9 @@ def save_txt_calib(root_path):
     rot = np.reshape(rot,(-1)).astype(np.float32)
 
     calibriation_dict["P0"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
-    calibriation_dict["P1"] = f"{cam_matrix[0]} {cam_matrix[1]} {cam_matrix[2]} {cam_matrix[3]} {cam_matrix[4]} {cam_matrix[5]} {cam_matrix[6]} {cam_matrix[7]} {cam_matrix[8]} {cam_matrix[9]} {cam_matrix[10]} {cam_matrix[11]}"
-    calibriation_dict["P2"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
+    calibriation_dict["P1"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
+    calibriation_dict["P2"] = f"{cam_matrix[0]} {cam_matrix[1]} {cam_matrix[2]} {cam_matrix[3]} {cam_matrix[4]} {cam_matrix[5]} {cam_matrix[6]} {cam_matrix[7]} {cam_matrix[8]} {cam_matrix[9]} {cam_matrix[10]} {cam_matrix[11]}"
+
     calibriation_dict["P3"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
     calibriation_dict["R0_rect"] = f"{rot[0]} {rot[1]} {rot[2]} {rot[3]} {rot[4]} {rot[5]} {rot[6]} {rot[7]} {rot[8]}"
     calibriation_dict["Tr_velo_to_cam"] = f"{transform[0]} {transform[1]} {transform[2]} {transform[3]} {transform[4]} {transform[5]} {transform[6]} {transform[7]} {transform[8]} {transform[9]} {transform[10]} {transform[11]}"
