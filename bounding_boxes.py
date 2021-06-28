@@ -1,7 +1,4 @@
-#!/home/ri-1080/.pyenv/versions/ros_py36/pin/python
-
 import numpy as np
-
 import json
 
 
@@ -46,15 +43,13 @@ def skew_sym_matrix(u):
 
 
 def convert_a2d2_to_kitti_label(boxes):
-    '''['type', 'truncated', 'occluded', 'alpha', 'bbox_xmin', 'bbox_ymin',
-                    'bbox_xmax', 'bbox_ymax', 'dimensions_1', 'dimensions_2', 'dimensions_3',
-                    'location_1', 'location_2', 'location_3', 'rotation_y']'''
+    '''
+    ['type', 'truncated', 'occluded', 'alpha', 'bbox_xmin', 'bbox_ymin',
+    'bbox_xmax', 'bbox_ymax', 'dimensions_1', 'dimensions_2', 'dimensions_3',
+    'location_1', 'location_2', 'location_3', 'rotation_y']
+    '''
     lines = list()
     for i, bbox_read in enumerate(boxes):
         line = f"{bbox_read['class']} {bbox_read['truncation']:.2f} {bbox_read['occlusion']} {bbox_read['alpha']:.2f} {bbox_read['left']:.2f} {bbox_read['top']:.2f} {bbox_read['right']:.2f} {bbox_read['bottom']:.2f} {bbox_read['size'][0]:.2f} {bbox_read['size'][1]:.2f} {bbox_read['size'][2]:.2f} {bbox_read['center'][0]:.2f} {bbox_read['center'][1]:.2f} {bbox_read['center'][2]:.2f} {bbox_read['rot_angle']:.2f}"
         lines.append(line)
     return lines
-
-
-if __name__ == '__main__':
-    read_bounding_boxes()
