@@ -118,28 +118,40 @@ def transform_from_to(src, target):
     return transform
 
 
-def save_txt_calib(root_path):
+def get_calibration(root_path):
     config = load_json(root_path)
     cam_matrix = config['cameras']['front_center']['CamMatrix']
-    view = config['cameras']['front_center']['view']
-    transform = get_transform_from_global(view)
-    rot = get_rot_from_global(view)
+
+    target_view = config['cameras']['front_center']['view']
+    camera_transform = get_transform_to_global(target_view)
+    src_view = config['lidars']['front_center']['view']
+    rot = rot_from_to(src_view, target_view)
+    transform = transform_from_to(src_view, target_view)
 
     ZERO = "0.000000000000e+00"
     calibriation_dict = dict()
+    print(cam_matrix)
     cam_matrix = np.array(cam_matrix).reshape(3, 3)
+    print(cam_matrix)
     one = np.eye(3)
     zero = np.zeros([3, 1])
     matrix34 = np.concatenate((one, zero), axis=1)
-    cam_matrix = cam_matrix @ matrix34 @ transform
-    cam_matrix = np.reshape(cam_matrix, (-1)).astype(np.float32)
-    transform = np.reshape(transform, (-1)).astype(np.float32)
-    rot = np.reshape(rot, (-1)).astype(np.float32)
+    cam_matrix = cam_matrix @ matrix34
+    print(cam_matrix)
+    cam_matrix = (np.reshape(cam_matrix, (-1)).astype(np.str)).tolist()
+    print(len(cam_matrix))
+    transform = np.reshape(transform, (-1)).astype(np.str)
+    rot = np.reshape(rot, (-1)).astype(np.str)
 
     calibriation_dict["P0"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
     calibriation_dict["P1"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
-    calibriation_dict["P2"] = " ".join(cam_matrix)
+    calibriation_dict["P2"] = " ".join(cam_matrix[:12])
     calibriation_dict["P3"] = f"{ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO} {ZERO}"
     calibriation_dict["R0_rect"] = " ".join(rot)
-    calibriation_dict["Tr_velo_to_cam"] = " ".join(transform)
+    calibriation_dict["Tr_velo_to_cam"] = " ".join(transform[:12])
     return calibriation_dict
+
+
+if __name__ == '__main__':
+    root_path = '/media/ri-1080/IanBook12T/datasets/raw_zips/a2d2'
+    a = get_calibration(root_path)
