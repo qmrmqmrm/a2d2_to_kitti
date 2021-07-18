@@ -1,4 +1,4 @@
-#!/home/ri-1080/.pyenv/versions/ros_py36/pin/python
+#!/home/dolphin/.pyenv/versions/torch18/pin/python
 
 import open3d as o3d
 import numpy as np

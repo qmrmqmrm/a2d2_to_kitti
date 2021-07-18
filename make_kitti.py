@@ -1,4 +1,4 @@
-#!/home/ri-1080/.pyenv/versions/ros_py36/pin/python
+#!/home/dolphin/.pyenv/versions/torch18/pin/python
 import numpy as np
 import os
 import glob
@@ -13,7 +13,7 @@ def convert_a2d2_to_kitti(root_path):
     laidar_file_names = sorted(
         glob.glob(os.path.join(root_path, 'bbox/camera_lidar_semantic_bboxes/*/lidar/cam_front_center/*.npz')))
 
-    save_dirctory = "/home/ri-1080/work2/a2d2_to_kitti/data/training"
+    save_dirctory = "/home/dolphin/work/a2d2_to_kitti/data/training"
     save_label_txt_dirctory = os.path.join(save_dirctory, 'label')
     save_lists_dirctory = os.path.join(save_dirctory, 'lists')
     save_lidar_dirctory = os.path.join(save_dirctory, "velodyne")
@@ -35,7 +35,6 @@ def convert_a2d2_to_kitti(root_path):
         file_name_bboxes = seq_name.replace("lidar","label3D").replace("npz","json")
         file_name_bboxes = os.path.join("/".join(lidar_file_name.split('/')[:-3]), "label3D", "cam_front_center",
                                         file_name_bboxes)
-        print(file_name_bboxes)
         boxes = a2.read_bounding_boxes(file_name_bboxes)
         lines = a2.convert_a2d2_to_kitti_label(boxes)
 
@@ -75,5 +74,5 @@ def extract_bboxes_file_name_from_image_file_name(file_name_image):
 
 
 if __name__ == '__main__':
-    root_path = '/media/ri-1080/IanBook12T/datasets/raw_zips/a2d2'
+    root_path = '/media/dolphin/intHDD/a2d2'
     convert_a2d2_to_kitti(root_path)

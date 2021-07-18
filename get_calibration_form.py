@@ -1,4 +1,4 @@
-#!/home/ri-1080/.pyenv/versions/ros_py36/pin/python
+#!/home/dolphin/.pyenv/versions/torch18/pin/python
 
 import numpy as np
 import os
@@ -12,13 +12,38 @@ EPSILON = 1.0e-10
 def load_json(root_path):
     file_names = sorted(glob.glob(os.path.join(root_path, '*.json')))
 
-    # print(file_names)
     for i, file_name in enumerate(file_names):
         with open(file_name, 'r') as f:
             config = json.load(f)
 
     return config
 
+
+
+def _get_axes_of_a_view(view):
+    x_axis = view['x-axis']
+    y_axis = view['y-axis']
+    x_axis_norm = np.linalg.norm(x_axis)
+    y_axis_norm = np.linalg.norm(y_axis)
+    if (x_axis_norm < 1.0e-10) or (y_axis_norm < 1.0e-10):
+        raise ValueError("Norm of input vector(s) too small.")
+    # normalize the axes
+    x_axis = x_axis / x_axis_norm
+    y_axis = y_axis / y_axis_norm
+    # make a new y-axis which lies in the original x-y plane, but is orthogonal to x-axis
+    y_axis = y_axis - x_axis * np.dot(y_axis, x_axis)
+
+    # create orthogonal z-axis
+    z_axis = np.cross(x_axis, y_axis)
+    # calculate and check y-axis and z-axis norms
+    y_axis_norm = np.linalg.norm(y_axis)
+    z_axis_norm = np.linalg.norm(z_axis)
+    if (y_axis_norm < 1.0e-10) or (z_axis_norm < 1.0e-10):
+        raise ValueError("Norm of view axis vector(s) too small.")
+    # make x/y/z-axes orthonormal
+    y_axis = y_axis / y_axis_norm
+    z_axis = z_axis / z_axis_norm
+    return x_axis, y_axis, z_axis
 
 def get_origin_of_a_view(view):
     return view['origin']
@@ -117,29 +142,40 @@ def transform_from_to(src, target):
 
     return transform
 
+def _get_transform_to_vehicle( view):
+    # get axes (XYZ in sensor config)
+    front, left, up = _get_axes_of_a_view(view)
+    # change camera axes from (X:front Y:left) frame to (X:right Y:down) frame
+    x_axis, y_axis, z_axis = front, left, up
+    # get origin
+    origin = view['origin']
+    transform_to_global = np.eye(4)
+    # rotation
+    transform_to_global[:3, 0] = x_axis
+    transform_to_global[:3, 1] = y_axis
+    transform_to_global[:3, 2] = z_axis
+    # origin
+    transform_to_global[:3, 3] = origin
+    # print("transform\n", transform_to_global)
+    return transform_to_global
 
 def get_calibration(root_path):
     config = load_json(root_path)
     cam_matrix = config['cameras']['front_center']['CamMatrix']
 
     target_view = config['cameras']['front_center']['view']
-    camera_transform = get_transform_to_global(target_view)
     src_view = config['lidars']['front_center']['view']
     rot = rot_from_to(src_view, target_view)
     transform = transform_from_to(src_view, target_view)
 
     ZERO = "0.000000000000e+00"
     calibriation_dict = dict()
-    print(cam_matrix)
     cam_matrix = np.array(cam_matrix).reshape(3, 3)
-    print(cam_matrix)
     one = np.eye(3)
     zero = np.zeros([3, 1])
     matrix34 = np.concatenate((one, zero), axis=1)
     cam_matrix = cam_matrix @ matrix34
-    print(cam_matrix)
     cam_matrix = (np.reshape(cam_matrix, (-1)).astype(np.str)).tolist()
-    print(len(cam_matrix))
     transform = np.reshape(transform, (-1)).astype(np.str)
     rot = np.reshape(rot, (-1)).astype(np.str)
 
@@ -153,5 +189,5 @@ def get_calibration(root_path):
 
 
 if __name__ == '__main__':
-    root_path = '/media/ri-1080/IanBook12T/datasets/raw_zips/a2d2'
+    root_path = '/media/dolphin/intHDD/a2d2'
     a = get_calibration(root_path)
