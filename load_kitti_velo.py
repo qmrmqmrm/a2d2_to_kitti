@@ -1,4 +1,4 @@
-#!/home/dolphin/.pyenv/versions/torch18/pin/python
+#!/home/dolphin/.pyenv/versions/open3d/pin/python
 
 import open3d as o3d
 import numpy as np
@@ -6,9 +6,11 @@ import os
 import glob
 
 
-def load_kitti_velodyne():
-    root_path = 'data/velodyne/'
-    file_names = sorted(glob.glob(os.path.join(root_path, '*.bin')))
+def load_kitti_velodyne(root_path):
+    if root_path[-3:] == "bin":
+        file_names = sorted(glob.glob(os.path.join(root_path)))
+    else:
+        file_names = sorted(glob.glob(os.path.join(root_path, '*.bin')))
 
     velodyne = dict()
     for i, file_name_lidar in enumerate(file_names):
@@ -34,5 +36,6 @@ def make_open3d_from_kitti_velodyne(velodyne, show_view=True):
 
 
 if __name__ == '__main__':
-    velodyne = load_kitti_velodyne()
+    root_path = '/media/dolphin/intHDD/birdnet_data/a2d2/training/velodyne/000094515.bin'
+    velodyne = load_kitti_velodyne(root_path)
     make_open3d_from_kitti_velodyne(velodyne)

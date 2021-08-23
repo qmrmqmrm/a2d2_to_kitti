@@ -1,4 +1,4 @@
-#!/home/dolphin/.pyenv/versions/torch18/pin/python
+#!/home/dolphin/.pyenv/versions/open3d/pin/python
 
 import numpy as np
 import os
@@ -165,7 +165,7 @@ def get_calibration(root_path):
 
     target_view = config['cameras']['front_center']['view']
     src_view = config['lidars']['front_center']['view']
-    rot = rot_from_to(src_view, target_view)
+    rot = get_rot_to_global(target_view)
     transform = transform_from_to(src_view, target_view)
 
     ZERO = "0.000000000000e+00"

@@ -27,7 +27,7 @@ def read_bounding_boxes(file_name_bboxes):
         bbox_read['rotation'] = axis_angle_to_rotation_mat(axis, angle)
         boxes.append(bbox_read)
 
-    return boxes
+    return bboxes
 
 
 def axis_angle_to_rotation_mat(axis, angle):

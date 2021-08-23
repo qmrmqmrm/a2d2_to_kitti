@@ -1,12 +1,13 @@
-#!/home/dolphin/.pyenv/versions/torch18/pin/python
+#!/home/dolphin/.pyenv/versions/open3d/pin/python
 import numpy as np
 import os
+import sys
 import glob
+import shutil
 
 import get_calibration_form as gc
 import bounding_boxes as a2
-import save_file as sf
-
+import load_and_save as sf
 
 def convert_a2d2_to_kitti(root_path):
     calibriation_dict = gc.get_calibration(root_path)
@@ -19,6 +20,7 @@ def convert_a2d2_to_kitti(root_path):
     save_lidar_dirctory = os.path.join(save_dirctory, "velodyne")
     save_calib_dirctory = os.path.join(save_dirctory, 'calib')
     num_list = list()
+    num_files = len(laidar_file_names)
 
     for i, lidar_file_name in enumerate(laidar_file_names):
         seq_name = lidar_file_name.split('/')[-1]
@@ -41,6 +43,7 @@ def convert_a2d2_to_kitti(root_path):
         sf.save_txt(save_label_txt_dirctory, lines, file_num)
         sf.save_bin(save_lidar_dirctory, velodyne_bin, file_num)
         sf.save_txt_dict(save_calib_dirctory, calibriation_dict, file_num)
+        print_progress(f"-- Progress: {i}/{num_files}")
 
     val_len = int(len(num_list) * 0.2)
     val_list = num_list[:val_len]
@@ -71,6 +74,14 @@ def extract_bboxes_file_name_from_image_file_name(file_name_image):
                        file_name_bboxes[3] + '.json'
 
     return file_name_bboxes
+
+
+def print_progress(status_msg):
+    # NOTE: the \r which means the line should overwrite itself.
+    msg = "\r" + status_msg
+    # Print it.
+    sys.stdout.write(msg)
+    sys.stdout.flush()
 
 
 if __name__ == '__main__':
