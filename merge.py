@@ -6,48 +6,53 @@ import glob
 import cv2
 import json
 
-import get_calibration_form as gc
 import bounding_boxes as a2
-import load_and_save as sf
 
 
-def merge_to_all_image(root_path):
-    calibriation_dict = gc.get_calibration(root_path)
-    camera_file_names = sorted(
-        glob.glob(os.path.join(root_path, 'bbox/camera_lidar_semantic_bboxes/*/camera/cam_front_center/*.png')))
+def merge_to_all_image(path):
+    folders_train = ['20181108_084007',]#'20181107_132300', '20181107_132730', '20181107_133258',
+                     # '20181108_091945', '20181108_103155', '20181108_123750']
+                    # '20180807_145028', '20180810_142822', '20180925_101535', '20180925_112730',]
+                    # '20180925_124435','20180925_135056', '20181008_095521', '20181016_125231',]
 
-    save_dirctory = "/media/dolphin/intHDD/birdnet_data/my_a2d2"
-    save_camera_dirctory = os.path.join(save_dirctory, 'camera')
-    save_label_dirctory = os.path.join(save_dirctory, 'label')
+    folders_test = []  # '20181204_135952', '20181204_154421', '20181204_170238']
+    splits = {'train': folders_train, 'test': folders_test}
+    for split, folders in splits.items():
+        num_folder = len(folders)
+        for j, folder in enumerate(folders):
+            camera_file_names = sorted(glob.glob(os.path.join(path, 'bbox/camera_lidar_semantic_bboxes',
+                                                              folder, 'camera/cam_front_center/*.png')))
 
-    num_list = list()
-    num_files = len(camera_file_names)
+            save_dirctory = "/media/dolphin/intHDD/birdnet_data/bev_a2d2"
+            save_camera_dirctory = os.path.join(save_dirctory, split, folder, 'camera')
+            save_label_dirctory = os.path.join(save_dirctory, split, folder, 'label')
 
-    for i, camera_file_name in enumerate(camera_file_names):
-        seq_name = camera_file_name.split('/')[-1]
-        file_name = seq_name.split('.')[0]
-        file_num = file_name.split('_')[-1]
-        # num_list.append(file_num)
+            num_files = len(camera_file_names)
+            if not os.path.exists(save_label_dirctory):
+                os.makedirs(save_label_dirctory)
+            if not os.path.exists(save_camera_dirctory):
+                os.makedirs(save_camera_dirctory)
 
-        img = cv2.imread(camera_file_name)
-        save_camera = os.path.join(save_camera_dirctory,f"{file_num}.png")
-        # print(save_camera)
-        cv2.imwrite(save_camera,img)
+            for i, camera_file_name in enumerate(camera_file_names):
+                seq_name = camera_file_name.split('/')[-1]
+                file_name = seq_name.split('.')[0]
+                file_num = file_name.split('_')[-1]
 
-        # # file_name_bboxes = extract_bboxes_file_name_from_image_file_name(lidar_file_name)
-        # file_name_bboxes = seq_name.replace("camera_","label3D_").replace("png","json")
-        # file_name_bboxes = os.path.join("/".join(camera_file_name.split('/')[:-3]), "label3D", "cam_front_center",
-        #                                 file_name_bboxes)
-        # # print(file_name_bboxes)
-        # save_label = os.path.join(save_label_dirctory,f"{file_num}.json")
-        # boxes = a2.read_bounding_boxes(file_name_bboxes)
-        # with open(save_label,"w") as make_file:
-        #     json.dump(boxes, make_file, indent="\t")
-        # lines = a2.convert_a2d2_to_kitti_label(boxes)
+                img = cv2.imread(camera_file_name)
+                save_camera = os.path.join(save_camera_dirctory, f"{file_num}.png")
 
-        print_progress(f"-- Progress: {i}/{num_files}")
+                cv2.imwrite(save_camera, img)
 
+                file_name_bboxes = seq_name.replace("camera_", "label3D_").replace("png", "json")
+                file_name_bboxes = os.path.join("/".join(camera_file_name.split('/')[:-3]), "label3D",
+                                                "cam_front_center", file_name_bboxes)
 
+                save_label = os.path.join(save_label_dirctory, f"{file_num}.json")
+                boxes = a2.read_bounding_boxes(file_name_bboxes)
+                with open(save_label, "w") as make_file:
+                    json.dump(boxes, make_file, indent="\t")
+
+                print_progress(f"-- Progress: {i}/{num_files} {j}/{num_folder}")
 
 
 def print_progress(status_msg):
@@ -59,5 +64,5 @@ def print_progress(status_msg):
 
 
 if __name__ == '__main__':
-    root_path = '/media/dolphin/intHDD/a2d2'
-    convert_a2d2_to_kitti(root_path)
+    path = '/media/dolphin/intHDD/a2d2'
+    merge_to_all_image(path)

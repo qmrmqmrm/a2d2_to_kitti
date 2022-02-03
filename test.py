@@ -17,6 +17,8 @@ def load_json(root_path):
     return configs
 
 
+
+
 if __name__ == '__main__':
     root = "/media/dolphin/intHDD/birdnet_data/bv_a2d2/annotations"
     configs = load_json(root)
